@@ -217,6 +217,11 @@ int ssl_init(void) {
 #if defined(SSL_OP_ENABLE_KTLS)
 		SSL_CONF_CTX  *cctx;
 		cctx = SSL_CONF_CTX_new();
+		if (cctx == NULL) {
+			fprintf(stderr, "Kernel TLS offload is not available\n");
+			exit(EX_USAGE);
+		}
+		
 		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
 
 		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
@@ -226,7 +231,18 @@ int ssl_init(void) {
 		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SHOW_ERRORS);
 
 		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
-		SSL_CONF_cmd(cctx, "Options", "KTLS");
+		if (SSL_CONF_cmd(cctx, "Options", "KTLS") <= 0){
+			fprintf(stderr, "Kernel TLS offload is not available\n");
+			SSL_CONF_CTX_free(cctx);
+			exit(EX_USAGE);
+		}
+		if (SSL_CONF_CTX_finish(cctx) != 1) {
+			fprintf(stderr, "Kernel TLS offload is not available\n");
+			SSL_CONF_CTX_free(cctx);
+			exit(EX_USAGE);
+		}
+		SSL_CONF_CTX_free(cctx);
+
 
         //SSL_CTX_set_options(settings.ssl_ctx, SSL_OP_ENABLE_KTLS);
 #else
