@@ -34,7 +34,8 @@ ssize_t ssl_read(conn *c, void *buf, size_t count) {
     /* TODO : document the state machine interactions for SSL_read with
         non-blocking sockets/ SSL re-negotiations
     */
-    return SSL_read(c->ssl, buf, count);
+	return recvmsg( SSL_get_fd(c->ssl), buf, count);
+    //return SSL_read(c->ssl, buf, count);
 }
 
 /*
@@ -71,7 +72,8 @@ ssize_t ssl_sendmsg(conn *c, struct msghdr *msg, int flags) {
     /* TODO : document the state machine interactions for SSL_write with
         non-blocking sockets/ SSL re-negotiations
     */
-    return SSL_write(c->ssl, c->ssl_wbuf, bytes);
+	return write( SSL_get_fd(c->ssl), c->ssl_wbuf, bytes);
+    //return SSL_write(c->ssl, c->ssl_wbuf, bytes);
 }
 
 /*
@@ -80,7 +82,8 @@ ssize_t ssl_sendmsg(conn *c, struct msghdr *msg, int flags) {
  */
 ssize_t ssl_write(conn *c, void *buf, size_t count) {
     assert (c != NULL);
-    return SSL_write(c->ssl, buf, count);
+	return write( SSL_get_fd(c->ssl), buf, count);
+    //return SSL_write(c->ssl, buf, count);
 }
 
 /*
@@ -214,41 +217,7 @@ int ssl_init(void) {
 
     // Optional kernel TLS offload; default disabled.
     if (settings.ssl_kernel_tls) {
-#if defined(SSL_OP_ENABLE_KTLS)
-		SSL_CONF_CTX  *cctx;
-		cctx = SSL_CONF_CTX_new();
-		if (cctx == NULL) {
-			fprintf(stderr, "Kernel TLS offload is not available\n");
-			exit(EX_USAGE);
-		}
-		
-		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
-
-		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
-		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
-		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CLIENT);
-		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
-		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SHOW_ERRORS);
-
-		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
-		if (SSL_CONF_cmd(cctx, "Options", "KTLS") <= 0){
-			fprintf(stderr, "Kernel TLS offload is not available\n");
-			SSL_CONF_CTX_free(cctx);
-			exit(EX_USAGE);
-		}
-		if (SSL_CONF_CTX_finish(cctx) != 1) {
-			fprintf(stderr, "Kernel TLS offload is not available\n");
-			SSL_CONF_CTX_free(cctx);
-			exit(EX_USAGE);
-		}
-		SSL_CONF_CTX_free(cctx);
-
-
-        //SSL_CTX_set_options(settings.ssl_ctx, SSL_OP_ENABLE_KTLS);
-#else
-        fprintf(stderr, "Kernel TLS offload is not available\n");
-        exit(EX_USAGE);
-#endif
+		fprintf(stderr, "Kernel TLS offload \n");
     }
 
 #ifdef SSL_OP_NO_RENEGOTIATION
