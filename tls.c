@@ -183,9 +183,11 @@ int ssl_init(void) {
 
     // SSL context for the process. All connections will share one
     // process level context.
-    settings.ssl_ctx = SSL_CTX_new(TLS_server_method());
+    settings.ssl_ctx = SSL_CTX_new(TLSv1_2_method());
+	SSL_CTX_set_cipher_list(settings.ssl_ctx, "ECDHE-RSA-AES128-GCM-SHA256");
 
-    SSL_CTX_set_min_proto_version(settings.ssl_ctx, settings.ssl_min_version);
+	EVP_add_cipher(EVP_aes_128_gcm());
+    //SSL_CTX_set_min_proto_version(settings.ssl_ctx, settings.ssl_min_version);
 
     // The server certificate, private key and validations.
     char *error_msg;
@@ -217,7 +219,28 @@ int ssl_init(void) {
 
     // Optional kernel TLS offload; default disabled.
     if (settings.ssl_kernel_tls) {
-		fprintf(stderr, "Kernel TLS offload \n");
+#if defined(SSL_OP_ENABLE_KTLS)
+		/*
+		SSL_CONF_CTX  *cctx;
+		cctx = SSL_CONF_CTX_new();
+		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
+
+		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
+		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
+		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CLIENT);
+		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
+		SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SHOW_ERRORS);
+
+		SSL_CONF_CTX_set_ssl_ctx(cctx, settings.ssl_ctx);
+		SSL_CONF_cmd(cctx, "Options", "KTLS");
+		*/
+
+        fprintf(stderr, "Kernel TLS offload \n");
+        //SSL_CTX_set_options(settings.ssl_ctx, SSL_OP_ENABLE_KTLS);
+#else
+        fprintf(stderr, "Kernel TLS offload is not available\n");
+        exit(EX_USAGE);
+#endif
     }
 
 #ifdef SSL_OP_NO_RENEGOTIATION
