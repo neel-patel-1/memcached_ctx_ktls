@@ -527,7 +527,7 @@ AUTOMAKE = ${SHELL} '/home/n869p538/wrk_offloadenginesupport/async_nginx_build/k
 AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2 -pthread -pthread -Wall -Werror -pedantic -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls
+CFLAGS = -g -O2 -pthread -pthread -Wall -pedantic -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls
 CPP = gcc -E
 CPPFLAGS = -I/home/n869p538/wrk_offloadenginesupport/async_nginx_build/ktls/openssl-3.0.0/include -I/home/n869p538/wrk_offloadenginesupport/async_nginx_build/kvs/memcached-1.6.16/../libevent_build/include 
 CSCOPE = cscope
